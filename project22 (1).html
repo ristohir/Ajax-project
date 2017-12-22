@@ -1,0 +1,218 @@
+<html>
+<head>
+<link href='https://fonts.googleapis.com/css?family=Amatic SC' rel='stylesheet'>
+<style>
+
+/* sets body background color, width and top padding */
+
+body { 
+    background: #0B2A36; 
+	width:75%;
+	margin: 0 auto;
+	padding-top: 60px;
+}
+
+/* sets movie theatre list background color, font, font size, text color, width, spacing, bolding and centers it */
+
+#lista{
+border: 1px solid #B4D2DE;
+border-style: outset;
+width: 25%;
+background: #10313E	;
+font-family: 'Amatic SC'; 
+font-size: 20px; 
+color:white;
+font-weight: bold;
+letter-spacing: 2px;
+}
+
+/* sets search bar background color, font, font size, text color, spacing, bolding and centers it*/
+
+#myInput {
+border: 1px solid #B4D2DE;
+background: #10313E	;
+font-family: 'Amatic SC'; 
+font-size: 20px; 
+color: white;
+letter-spacing: 2px;
+font-weight: bold;
+}
+
+/* sets #nappi div width, bottom padding and centers it*/
+
+#nappi{
+width: 75%;
+margin: 0 auto;
+padding-bottom: 6px;
+}
+
+/* sets #kamaa div background color, width and centers it*/
+
+#kamaa {
+background: #10313E;
+width: 75%;
+margin: 0 auto;
+}
+
+/* sets the width, font, font size, text color, bolding, spacing, 
+centered text, paddings and bottom border for the table that contains the list of shows*/
+
+table, th, td {
+width: 100%;
+font-family: 'Amatic SC'; 
+font-size: 30px; 
+font-weight: bold; 
+color: white;
+letter-spacing: -1px; 
+line-height: 1; 
+text-align: center;
+margin: 0 auto;
+border-collapse: collapse;
+border-bottom: 6px solid #0B2A36;
+padding-top: 10px;
+    padding-right: 50px;
+    padding-bottom: 10px;
+    padding-left: 50px;	
+}
+
+/*sets h1 titles font, font size, text color, bolding, spacing and centers it*/
+h1{
+color: #B4D2DE; 
+font-family: 'Amatic SC';
+font-size: 100px; 
+font-weight: bold; 
+letter-spacing: 3px; 
+line-height: 1; 
+text-align: center;
+
+}
+
+</style>
+</head>
+<!-- jquery added -->
+<script src="http://code.jquery.com/jquery-2.1.4.min.js">
+</script>
+<script>
+function lataa(){
+//jquery for hiding the search bar
+    $("#myInput").hide();
+//starting the xml request
+    var url = "http://www.finnkino.fi/xml/TheatreAreas/";
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+//checking if site is up
+	xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+			//setting response xml to tideot
+			tiedot = xmlhttp.responseXML; 
+			//setting theaterareas to alueet variable
+			var alueet =  tiedot.getElementsByTagName("TheatreArea");
+				//for looping alueet for theatre id and name
+				for (t=0; t < alueet.length; t++){
+				alue = alueet[t].getElementsByTagName('Name')[0].childNodes[0].nodeValue;
+				id = alueet[t].getElementsByTagName('ID')[0].childNodes[0].nodeValue;
+				//getting droplist and options to variable
+				var l = document.getElementById("lista");
+				var a = document.createElement("option");
+				//setting values to option text and value
+				a.text = alue;
+				a.value = id;
+				//adding options to droplist
+				l.options.add(a);
+			}
+		}
+	}
+}
+function valinta(){
+//jquery for showing the search bar
+$("#myInput").show();
+//droplist animation
+var sel = $("select");
+sel.animate({width: '10%', opacity: '0.75'}, "slow");
+//getting the option values
+var u = document.getElementById("lista");
+var str = u.options[u.selectedIndex].value;
+//console log to check that value is correct
+console.log(str);
+//setting up output variable
+var out = "";
+//removing earlier table data if user selects new area
+$("#mytable tr").remove();
+	//starting the xml request
+    var url = "http://www.finnkino.fi/xml/Schedule/?area="+str+"&dt=date";
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", url, true);
+	xmlhttp.send();
+	//checking that site is up
+	xmlhttp.onreadystatechange = function() {
+	        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+			//setting response data to tiedot
+			var tiedot = xmlhttp.responseXML; 
+			//setting show data to var x
+			var x = tiedot.getElementsByTagName("Show");
+			//for looping x's data to get data from all show elements
+			for (var i = 0; i < x.length; i++) {
+			//setting output table first tag + id
+			out = "<table id='mytable'>";
+			//setting up table row
+			out+='<tr>';
+			//getting movie title value and adding it to table data
+		out +='<td>'+ x[i].getElementsByTagName('OriginalTitle')[0].childNodes[0].nodeValue+'</td>';
+			//getting theatre value and adding it to table data
+		out +='<td>'+ x[i].getElementsByTagName('Theatre')[0].childNodes[0].nodeValue+'</td>';
+			//getting movie show times value and adding it to table data
+		out +='<td>'+ x[i].getElementsByTagName('dttmShowStart')[0].childNodes[0].nodeValue+'</td>';
+			//getting picture of the movie value and adding it to table data and adding url that send the user to finnkino page where you can book the movie
+		out +='<td><a href="'+ x[i].getElementsByTagName('ShowURL')[0].childNodes[0].nodeValue+'"><img src="'+ x[i].getElementsByTagName('EventSmallImagePortrait')[0].childNodes[0].nodeValue+'"></a></td>';
+			//closing tags for table row
+		out +='</tr>';
+			//closing tags for table element
+		out+='</table>';
+				//sending the output to the page
+					document.getElementById("kamaa").innerHTML += out;}	
+				}
+
+	
+		}
+    }
+function etsi(){
+	//setting up search bar variables
+    var input, filter, tr, td, a, i;
+	//getting input value
+    input = document.getElementById("myInput");
+	//setting up filter
+    filter = input.value.toUpperCase();
+	//getting table information
+    tr = document.getElementById("kamaa");
+	//getting table row information
+    td = tr.getElementsByTagName("tr");
+	//for looping table row information
+    for (i = 0; i < td.length; i++) {
+		//setting up table data to a
+        a = td[i].getElementsByTagName("td")[0];
+		//setting display of the table rows to check table data and show only ones that have been written to inputfield
+        if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+            td[i].style.display = "";
+        } else {
+            td[i].style.display = "none";
+
+        }
+    }
+}
+</script>
+
+<!-- runs lataa function on page load -->
+<body onload="lataa()">
+<h1>FINNKINON LEFFAT T&#196;N&#196;&#196;N!</h1>
+<div id="nappi">
+<!-- when theatre selected will run valinta function -->
+<select id="lista" onchange="valinta()" title="Valitse kaupunki tai teatteri"></select>
+<!-- search field for movies and runs etsi function -->
+<input type="text" id="myInput" onkeyup="etsi()" placeholder="Etsi elokuvaa" title="Kirjoita elokuvan nimi">
+</div>
+<!-- here goes the movie infos -->
+<div id="kamaa">
+</div>
+</body>
+</html>
